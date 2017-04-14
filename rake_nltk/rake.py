@@ -31,7 +31,7 @@ except Exception:
 
 class Rake(object):
 
-    def __init__(self, stopwords=None, punctuations=None):
+    def __init__(self, stopwords=None, punctuations=None, tokenizer=None):
         '''Constructor.
 
            @param stopwords: List of Words to be ignored for keyword extraction.
@@ -51,11 +51,19 @@ class Rake(object):
         # All things which act as sentence breaks during keyword extraction.
         self.to_ignore = set(self.stopwords + self.punctuations)
 
+        if not tokenizer:
+            self.tokenizer = self._def_tokenizer
+        else:
+            self.tokenizer = tokenizer
+
         # Stuff to be extracted from the provided text.
         self.frequency_dist = None
         self.degree = None
         self.rank_list = None
         self.ranked_phrases = None
+
+    def _def_tokenizer(self, sentence):
+        return [word.lower() for word in wordpunct_tokenize(sentence)]
 
     def extract_keywords_from_text(self, text):
         '''Method to extract keywords from the text provided.
@@ -169,7 +177,7 @@ class Rake(object):
         phrase_list = set()
         # Create contender phrases from sentences.
         for sentence in sentences:
-            word_list = [word.lower() for word in wordpunct_tokenize(sentence)]
+            word_list = [w for w in self.tokenizer(sentence)]
             phrase_list.update(self._get_phrase_list_from_words(word_list))
         return phrase_list
 
